@@ -8,14 +8,20 @@ const fs = require('fs');
 const filePath = path.join(__dirname, './db/todos.json');
 
 const server = http.createServer((req, res) => {
-    if (req.url === '/todos' && req.method === 'GET') {
+
+
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const pathName = url.pathname;
+
+
+    if (pathName === '/todos' && req.method === 'GET') {
         const allTODOS = fs.readFileSync(filePath, { encoding: 'utf-8' });
 
         res.writeHead(200, {
             "content-type": "application/json"
         })
         res.end(allTODOS);
-    } else if (req.url === '/todos/create-todo' && req.method === 'POST') {
+    } else if (pathName === '/todos/create-todo' && req.method === 'POST') {
         let data = '';
         req.on('data', (chunk_data) => {
             data = data + chunk_data;
@@ -35,6 +41,16 @@ const server = http.createServer((req, res) => {
             res.end(JSON.stringify({title, body, createdAt}, null, 2));
 
         })
+    } else if (pathName === '/todo' && req.method === 'GET') {
+        const title = url.searchParams.get('title');
+        // console.log(title);
+
+        const data = fs.readFileSync(filePath, { encoding: 'utf-8' });
+        const parsedData = JSON.parse(data);
+
+        const todo = parsedData.find(todo => todo.title === title);
+
+        res.end(JSON.stringify(todo, null, 2));
     }
 })
 
