@@ -96,6 +96,24 @@ const server = http.createServer((req, res) => {
             // res.end(JSON.stringify(parsedALLTODOS[todoIdx], null, 2));
             res.end(JSON.stringify({title, body, createdAt : parsedALLTODOS[todoIdx].createdAt}, null, 2))
         })
+    } else if (pathName === '/todos/delete-todo' && req.method === 'DELETE') {
+        const title = url.searchParams.get('title');
+
+        const allTODOS = fs.readFileSync(todosPath, { encoding: 'utf-8'});
+        const parsedAllToDos = JSON.parse(allTODOS);
+
+
+        const todo = parsedAllToDos.find(todo => todo.title === title);
+        // console.log(todo);
+        const newParsedAllTODOS = parsedAllToDos.filter(todo => todo.title !== title);
+        // console.log(newParsedAllTODOS);
+
+        fs.writeFileSync(todosPath, JSON.stringify(newParsedAllTODOS, null, 2), { encoding: 'utf-8' });
+
+        res.end(JSON.stringify(todo, null, 2));
+
+
+
     }
     
     
