@@ -57,14 +57,50 @@ const server = http.createServer((req, res) => {
         const data = fs.readFileSync(todosPath, { encoding: 'utf-8'});
         const parsedData = JSON.parse(data);
         const todo = parsedData.find((todo) => todo.title === title);
+
+        res.writeHead(200, {
+            "content-type": "application/json"
+        });
         res.end(JSON.stringify(todo, null, 2));
 
 
         // res.end("Single TODO");
 
+    } else if (pathName === '/todos/update-todo' && req.method === 'PATCH') {
 
+        let data = '';
+        req.on('data', (chunk) => {
+            data = data + chunk;
+            // console.log(data);
+        })
+        req.on('end', () => {
 
-    } else {
+            const title = url.searchParams.get('title');
+            // console.log(title);
+            const {body} = JSON.parse(data);
+            // console.log(body);
+            // console.log(JSON.parse(data).body);
+
+            const allTODOS = fs.readFileSync(todosPath, { encoding: 'utf-8'});
+            const parsedALLTODOS = JSON.parse(allTODOS);
+
+            const todoIdx = parsedALLTODOS.findIndex(todo => todo.title === title);
+            // console.log(todoIdx);
+
+            // console.log(parsedALLTODOS[todoIdx]);
+            parsedALLTODOS[todoIdx].body = body;
+            // console.log(parsedALLTODOS[todoIdx]);
+
+            fs.writeFileSync(todosPath, JSON.stringify(parsedALLTODOS, null, 2), { encoding: 'utf-8'});
+
+            // res.end(JSON.stringify(parsedALLTODOS[todoIdx], null, 2));
+            res.end(JSON.stringify({title, body, createdAt : parsedALLTODOS[todoIdx].createdAt}, null, 2))
+        })
+    }
+    
+    
+    
+    else {
         res.end('Route Not Found');
     }
 
