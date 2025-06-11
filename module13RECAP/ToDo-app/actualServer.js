@@ -50,6 +50,37 @@ const server = http.createServer((req, res) => {
         // res.end('Single Todo');
     }
 
+    else if (url.pathname === '/todos/update-todo' && req.method === 'PATCH') {
+        const id = url.searchParams.get('id');
+        let data = "";
+        req.on('data', (chunk) => {
+            data = data + chunk;
+        }) 
+        req.on('end', () => {
+            const parsedData = JSON.parse(data);
+            const {...newProps} = parsedData;
+
+            const allTodos = fs.readFileSync(pathName, 'utf-8');
+            const parsedAllTodos = JSON.parse(allTodos);
+            let todo = parsedAllTodos.find(todo => todo.id === id);
+            const {...oldProps} = todo;
+            const newParsedAllTodos = parsedAllTodos.filter(todo => todo.id !== id);
+            const newTodo = {...oldProps, ...newProps};
+            todo = newTodo;
+            newParsedAllTodos.push(todo);
+            fs.writeFileSync(pathName, JSON.stringify(newParsedAllTodos, null, 2), {encoding: "utf-8"});
+            res.end(JSON.stringify(todo, null, 2));
+        })
+           
+    } else if (url.pathname === '/todos/delete-todo' && req.method === 'DELETE') {
+        const id = url.searchParams.get('id');
+        const allTodos = fs.readFileSync(pathName, {encoding: 'utf-8'});
+        const parsedAllTodos = JSON.parse(allTodos);
+        const newParsedAllTodos = parsedAllTodos.filter(todo => todo.id !== id);
+        fs.writeFileSync(pathName, JSON.stringify(newParsedAllTodos, null, 2), 'utf-8');
+        res.end('Todo deleted Successfully');
+    }
+
 })
 
 
