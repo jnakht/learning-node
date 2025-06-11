@@ -6,7 +6,13 @@ const path = require('path');
 
 const pathName = path.join(__dirname, './db/todos.json');
 
+
 const server = http.createServer((req, res) => {
+
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    // console.log(url);
+
+
     if (req.url === '/todos' && req.method === 'GET') {
         const data = fs.readFileSync(pathName, { encoding: 'utf-8'}); 
         res.writeHead(200, {
@@ -29,8 +35,19 @@ const server = http.createServer((req, res) => {
         fs.writeFileSync(pathName, JSON.stringify(parsedAllTodos, null, 2), {encoding: 'utf-8'});
 
         res.end(JSON.stringify(newTodo, null, 2));
-       })
-        
+       })    
+    } 
+    // else if (req.url.startsWith('/todo') && req.method === 'GET') {
+    //     res.end('Single Todo');
+    // }
+
+    else if (url.pathname === '/todo' && req.method === 'GET') {
+        const id = url.searchParams.get('id');
+        const allTodos = fs.readFileSync(pathName, {encoding: 'utf-8'});
+        const parsedAllTodos = JSON.parse(allTodos);
+        const todo = parsedAllTodos.find(todo => todo.id === id);
+        res.end(JSON.stringify(todo, null, 2));
+        // res.end('Single Todo');
     }
 
 })
