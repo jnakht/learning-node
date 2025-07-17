@@ -1,9 +1,8 @@
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 
-const allTodos = [
-    {"name": "prisma", "learned" : "true"}
-]
 
 const server = http.createServer((req, res) => {
     // console.log({req, res});
@@ -18,10 +17,32 @@ const server = http.createServer((req, res) => {
         // res.setHeader("name", "Prisma");
         // res.setHeader("email", "ph@gmail.com");
         // res.statusCode = 201;
-        res.end(JSON.stringify(allTodos))
+        const pathName = path.join(__dirname, './db/todos.json');
+        const todos = fs.readFileSync(pathName, { encoding : "utf-8" });
+
+
+        res.end(todos)
         // res.end(`<h1>Hello World</h1> <h2>Hello World</h2> <h3>Hello World</h3>`)
     } else if (req.url === '/todos/create-todo' && req.method === 'POST') {
-        res.end('ToDo Created');
+        let data = "";
+        let createdAt = '';
+        req.on("data", (chunk) => {
+            data = data + chunk;
+            // console.log(data);
+        })
+        req.on('end', () => {
+            // console.log('This is the data', data);
+            const {title, body} = JSON.parse(data);
+            createdAt = new Date().toLocaleString();
+            const pathName = path.join(__dirname, './db/todos.json');
+            const todos = fs.readFileSync(pathName, { encoding: "utf-8"});
+            const allTodos = JSON.parse(todos);
+            allTodos.push({title, body, createdAt});
+            console.log(allTodos);
+            fs.writeFileSync(pathName, JSON.stringify(allTodos, null, 2), { encoding: "utf-8"});
+            res.end(JSON.stringify({title, body, createdAt}, null, 2));
+        })
+        
     } else {
         res.end('Route not found');
     }
