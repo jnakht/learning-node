@@ -8,9 +8,13 @@ const server = http.createServer((req, res) => {
     // console.log({req, res});
     // console.log(req.url, req.method);
     // res.end("Welcome to TO DO application server");
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    // console.log(url);
+    // console.log(req.headers.host);
+    // console.log(url.pathname);
+    const pathName = path.join(__dirname, './db/todos.json');
 
-
-    if (req.url === '/todos' && req.method === 'GET') {
+    if (url.pathname === '/todos' && req.method === 'GET') {
         res.writeHead(201, {
             "content-type" : "application/json"
         })
@@ -23,7 +27,7 @@ const server = http.createServer((req, res) => {
 
         res.end(todos)
         // res.end(`<h1>Hello World</h1> <h2>Hello World</h2> <h3>Hello World</h3>`)
-    } else if (req.url === '/todos/create-todo' && req.method === 'POST') {
+    } else if (url.pathname === '/todos/create-todo' && req.method === 'POST') {
         let data = "";
         let createdAt = '';
         req.on("data", (chunk) => {
@@ -43,7 +47,20 @@ const server = http.createServer((req, res) => {
             res.end(JSON.stringify({title, body, createdAt}, null, 2));
         })
         
-    } else {
+    } else if (url.pathname === '/todo' && req.method === "GET") {
+        // console.log(url.searchParams.get('title'));
+        const title = url.searchParams.get('title');
+        console.log(title);
+        const Todos = fs.readFileSync(pathName, { encoding: "utf-8" });
+        const allTodos = JSON.parse(Todos);
+        const singleTodo = allTodos.find(todo => todo.title === title);
+        // console.log(singleTodo);
+        res.end(JSON.stringify(singleTodo, null, 2));
+    }
+    
+    
+    
+    else {
         res.end('Route not found');
     }
 })
