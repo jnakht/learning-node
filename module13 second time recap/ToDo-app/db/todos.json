@@ -1,7 +1,9 @@
 [
   {
     "title": "Prisma",
-    "body": "Learning Prisma",
+    "body": {
+      "body": "Learning Core Prisma"
+    },
     "createdAt": "5/18/25, 1:23:02 AM"
   },
   {

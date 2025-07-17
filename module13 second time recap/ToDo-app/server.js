@@ -2,6 +2,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { json } = require('stream/consumers');
 
 
 const server = http.createServer((req, res) => {
@@ -56,8 +57,37 @@ const server = http.createServer((req, res) => {
         const singleTodo = allTodos.find(todo => todo.title === title);
         // console.log(singleTodo);
         res.end(JSON.stringify(singleTodo, null, 2));
+    } else if (url.pathname === '/todos/update-todo' && req.method === 'PATCH') {
+        let data = "";
+        let body = "";
+        req.on('data', (chunk) => {
+            data = data + chunk;
+        })
+        req.on('end', () => {
+            body = JSON.parse(data);
+            const title = url.searchParams.get('title');
+        const todos = fs.readFileSync(pathName, { encoding: "utf-8"});
+        const allTodos = JSON.parse(todos);
+        const todoIndex = allTodos.findIndex(todo => todo.title === title);
+        allTodos[todoIndex].body = body;
+        console.log(allTodos);
+        fs.writeFileSync(pathName, JSON.stringify(allTodos, null, 2), { encoding: "utf-8"});
+        res.end(JSON.stringify(allTodos[todoIndex], null, 2));
+        })
+        
+        
+    } else if (url.pathname === '/todos/delete-todo' && req.method === 'DELETE') {
+        const title = url.searchParams.get('title');
+        const todos = fs.readFileSync(pathName, { encoding: "utf-8"});
+        const allTodos = JSON.parse(todos);
+
+        const newList = allTodos.filter(todo => todo.title !== title);
+        fs.writeFileSync(pathName, JSON.stringify(newList, null, 2), { encoding: "utf-8"});
+        //the todos that remain
+        res.end(JSON.stringify(newList, null, 2))
+        
+        
     }
-    
     
     
     else {
